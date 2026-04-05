@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
     <title>CreoChat | Firebase Мессенджер</title>
-    <!-- Firebase SDK (правильные модули для версии 9+) -->
+    <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
@@ -45,11 +45,46 @@
             align-items: center;
             border-bottom: 1px solid #2d3a4e;
             flex-shrink: 0;
+            flex-wrap: wrap;
+            gap: 10px;
         }
         .logo-area { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
         .logo-area h1 { font-size: 1.4rem; color: #2dd4bf; }
         .device-badge { background: #0d1b2a; padding: 4px 14px; border-radius: 20px; font-size: 0.75rem; color: #2dd4bf; border: 1px solid #2dd4bf40; }
-        .shield-badges { display: flex; gap: 12px; flex-wrap: wrap; }
+        
+        /* UID блок в шапке */
+        .uid-block {
+            background: #0d1b2a;
+            padding: 6px 14px;
+            border-radius: 40px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 0.75rem;
+            border: 1px solid #2dd4bf40;
+        }
+        .uid-block span {
+            color: #8ba3c0;
+            font-family: monospace;
+            font-size: 0.7rem;
+            max-width: 180px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .copy-uid-btn {
+            background: #2dd4bf20;
+            border: 1px solid #2dd4bf;
+            padding: 4px 10px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 0.7rem;
+            color: #2dd4bf;
+            transition: 0.2s;
+        }
+        .copy-uid-btn:hover { background: #2dd4bf40; transform: scale(1.02); }
+        
+        .shield-badges { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
         .shield-badges span { background: #0d1b2a; padding: 4px 12px; border-radius: 20px; font-size: 0.7rem; color: #5ee0d0; }
 
         .messenger-layout {
@@ -121,7 +156,7 @@
         .send-btn { background: #2dd4bf; border: none; padding: 12px 28px; border-radius: 40px; font-weight: bold; color: #0f1724; cursor: pointer; }
 
         .right-panel {
-            width: 300px;
+            width: 320px;
             background: #111827;
             border-left: 1px solid #1f2a3e;
             padding: 20px;
@@ -129,29 +164,53 @@
             flex-shrink: 0;
         }
         .info-card { background: #1a2536; border-radius: 24px; padding: 18px; margin-bottom: 20px; }
-        .info-card h3 { color: #2dd4bf; margin-bottom: 12px; }
+        .info-card h3 { color: #2dd4bf; margin-bottom: 12px; font-size: 1rem; }
+        .info-card p { color: #cbd5e1; font-size: 0.85rem; margin: 6px 0; word-break: break-all; }
         button.small { padding: 8px 16px; font-size: 0.8rem; background: #2d3a4e; border: none; border-radius: 30px; color: white; cursor: pointer; width: 100%; margin-top: 8px; }
+        button.copy-btn-inline { background: #2dd4bf20; border: 1px solid #2dd4bf; padding: 4px 12px; border-radius: 30px; font-size: 0.7rem; color: #2dd4bf; cursor: pointer; margin-left: 8px; }
         input { background: #0f1724; border: 1px solid #2d3a4e; padding: 10px 14px; border-radius: 30px; color: white; width: 100%; margin-bottom: 10px; outline: none; }
         hr { border-color: #2d3a4e; margin: 12px 0; }
         .loading { text-align: center; padding: 40px; color: #2dd4bf; }
         .error-msg { color: #ff6b6b; font-size: 12px; text-align: center; margin-top: 8px; }
+        .uid-display-row { display: flex; align-items: center; justify-content: space-between; background: #0f1724; padding: 8px 12px; border-radius: 30px; margin: 8px 0; gap: 8px; flex-wrap: wrap; }
         
-        @media (max-width: 900px) { .right-panel { display: none; } .sidebar { width: 280px; } }
+        @media (max-width: 900px) { .right-panel { width: 280px; } }
         @media (max-width: 768px) {
             .sidebar { position: fixed; left: 0; top: 56px; height: calc(100% - 56px); z-index: 100; transform: translateX(-100%); width: 280px; transition: transform 0.3s; }
             .sidebar.mobile-open { transform: translateX(0); }
             .mobile-menu-btn { display: block; }
             .message-bubble { max-width: 85%; }
+            .uid-block span { max-width: 120px; }
         }
         .mobile-menu-btn { display: none; background: #2d3a4e; border: none; padding: 8px 14px; border-radius: 20px; color: white; cursor: pointer; }
+        
+        /* Уведомление о копировании */
+        .toast-copy {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #2dd4bf;
+            color: #0f1724;
+            padding: 8px 20px;
+            border-radius: 40px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            z-index: 1000;
+            animation: fadeOut 2s ease forwards;
+        }
+        @keyframes fadeOut {
+            0% { opacity: 1; transform: translateX(-50%) translateY(0); }
+            70% { opacity: 1; }
+            100% { opacity: 0; transform: translateX(-50%) translateY(-20px); visibility: hidden; }
+        }
     </style>
 </head>
 <body>
 <div id="appRoot" class="creochat-app"></div>
 
 <script>
-    // ======================== ВАШИ FIREBASE КЛЮЧИ (ИСПРАВЛЕНО) ========================
-    // Firebase configuration (ваши данные, правильно отформатированные)
+    // ======================== FIREBASE КЛЮЧИ ========================
     const firebaseConfig = {
         apiKey: "AIzaSyCN1nSMxZDtXPx45-ruKr6He85gLOafEJY",
         authDomain: "creochat.firebaseapp.com",
@@ -162,7 +221,6 @@
         measurementId: "G-63SHRQWWRJ"
     };
     
-    // Инициализация Firebase (исправлено: используем совместимую версию)
     if (!firebase.apps.length) {
         firebase.initializeApp(firebaseConfig);
     }
@@ -170,21 +228,44 @@
     const auth = firebase.auth();
     const db = firebase.firestore();
     
-    // Включаем сохранение сессии (автоматический вход после перезагрузки)
     auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL)
         .then(() => console.log('✅ Сессия сохраняется локально'))
-        .catch(err => console.warn('Ошибка persistence:', err));
+        .catch(err => console.warn(err));
     
-    // ======================== ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ ========================
-    let currentUser = null;         // Firebase user
-    let currentUserData = null;     // Документ пользователя в Firestore
+    // ======================== ПЕРЕМЕННЫЕ ========================
+    let currentUser = null;
+    let currentUserData = null;
     let activeChat = { type: 'friends', id: null };
     let currentDevice = localStorage.getItem('creo_deviceType') || 'pc';
     let messagesUnsubscribe = null;
     
-    // ======================== ФУНКЦИИ РАБОТЫ С FIRESTORE ========================
+    // Функция показа уведомления
+    function showToast(message) {
+        const toast = document.createElement('div');
+        toast.className = 'toast-copy';
+        toast.textContent = message;
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 2000);
+    }
     
-    // Создание/получение профиля пользователя
+    // Функция копирования текста в буфер
+    async function copyToClipboard(text, successMessage = '✅ Скопировано!') {
+        try {
+            await navigator.clipboard.writeText(text);
+            showToast(successMessage);
+        } catch (err) {
+            // fallback
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textarea);
+            showToast(successMessage);
+        }
+    }
+    
+    // ======================== FIRESTORE ФУНКЦИИ ========================
     async function initUserProfile(user) {
         const userRef = db.collection('users').doc(user.uid);
         const doc = await userRef.get();
@@ -205,7 +286,6 @@
         return doc.data();
     }
     
-    // Загрузка данных текущего пользователя
     async function loadCurrentUserData() {
         if (currentUser) {
             const userRef = db.collection('users').doc(currentUser.uid);
@@ -216,7 +296,6 @@
         }
     }
     
-    // Получение списка друзей
     async function getFriendsList() {
         if (!currentUserData) return [];
         const friendsData = [];
@@ -229,7 +308,6 @@
         return friendsData;
     }
     
-    // Получение заявок
     async function getFriendRequests() {
         if (!currentUserData) return [];
         const requests = [];
@@ -242,7 +320,6 @@
         return requests;
     }
     
-    // Отправить заявку
     async function sendFriendRequest(targetUid) {
         if (!currentUser || targetUid === currentUser.uid) return;
         const targetRef = db.collection('users').doc(targetUid);
@@ -253,11 +330,11 @@
                 await targetRef.update({
                     friendRequests: firebase.firestore.FieldValue.arrayUnion(currentUser.uid)
                 });
+                showToast(`📨 Заявка отправлена пользователю ${targetUid.substring(0, 8)}...`);
             }
         }
     }
     
-    // Принять заявку
     async function acceptFriendRequest(fromUid) {
         if (!currentUserData) return;
         await db.collection('users').doc(currentUser.uid).update({
@@ -268,9 +345,9 @@
             friends: firebase.firestore.FieldValue.arrayUnion(currentUser.uid)
         });
         await loadCurrentUserData();
+        showToast('✅ Друг добавлен!');
     }
     
-    // Отклонить заявку
     async function declineFriendRequest(fromUid) {
         await db.collection('users').doc(currentUser.uid).update({
             friendRequests: firebase.firestore.FieldValue.arrayRemove(fromUid)
@@ -278,7 +355,6 @@
         await loadCurrentUserData();
     }
     
-    // Создать канал
     async function createChannel(name) {
         if (!name || !currentUser) return;
         const channelRef = db.collection('channels').doc();
@@ -292,9 +368,9 @@
             channels: firebase.firestore.FieldValue.arrayUnion(channelRef.id)
         });
         await loadCurrentUserData();
+        showToast(`📢 Канал "${name}" создан!`);
     }
     
-    // Создать группу
     async function createGroup(name) {
         if (!name || !currentUser) return;
         const groupRef = db.collection('groups').doc();
@@ -308,9 +384,9 @@
             groups: firebase.firestore.FieldValue.arrayUnion(groupRef.id)
         });
         await loadCurrentUserData();
+        showToast(`💬 Группа "${name}" создана!`);
     }
     
-    // Получить каналы пользователя
     async function getUserChannels() {
         if (!currentUserData || !currentUserData.channels) return [];
         const channels = [];
@@ -321,7 +397,6 @@
         return channels;
     }
     
-    // Получить группы пользователя
     async function getUserGroups() {
         if (!currentUserData || !currentUserData.groups) return [];
         const groups = [];
@@ -332,7 +407,6 @@
         return groups;
     }
     
-    // Отправка сообщения
     async function sendMessage(chatId, chatType, text, fileData = null) {
         if (!currentUser || !chatId) return;
         const messagesRef = db.collection('messages');
@@ -347,7 +421,6 @@
         });
     }
     
-    // Подписка на сообщения
     function subscribeToMessages(chatId, chatType, callback) {
         return db.collection('messages')
             .where('chatId', '==', chatId)
@@ -363,10 +436,10 @@
     }
     
     // ======================== ОТРИСОВКА ИНТЕРФЕЙСА ========================
-    
     async function renderUI() {
         const isLogged = !!currentUser;
         const isMobile = (currentDevice === 'phone') || (window.innerWidth <= 768);
+        const userUid = currentUser ? currentUser.uid : null;
         
         let friendsList = [];
         let friendRequests = [];
@@ -393,6 +466,12 @@
                 ${isMobile ? `<button id="mobileMenuToggle" class="mobile-menu-btn">☰</button>` : ''}
                 <h1>🔥 CreoChat</h1>
                 <div class="device-badge">${currentDevice === 'phone' ? '📱 Мобильный' : '💻 ПК'}</div>
+                ${isLogged && userUid ? `
+                <div class="uid-block">
+                    <span>🆔 Ваш UID: <strong style="color:#2dd4bf;">${userUid.substring(0, 12)}...</strong></span>
+                    <button class="copy-uid-btn" id="copyHeaderUidBtn">📋 Копировать</button>
+                </div>
+                ` : ''}
             </div>
             <div class="shield-badges">
                 <span>🔥 Firebase Cloud</span>
@@ -442,7 +521,12 @@
                 </div>
                 ` : `
                 <div class="info-card"><h3>👤 Мой профиль</h3>
-                    <p><strong>${currentUserData?.displayName || currentUser.email}</strong><br>📧 ${currentUser.email}<br>👥 Друзей: ${friendsList.length}<br>📢 Каналов: ${channelsList.length}<br>💬 Групп: ${groupsList.length}</p>
+                    <p><strong>${currentUserData?.displayName || currentUser.email}</strong><br>📧 ${currentUser.email}</p>
+                    <div class="uid-display-row">
+                        <span style="font-family:monospace;font-size:0.75rem;">🆔 ${currentUser.uid}</span>
+                        <button class="copy-btn-inline" id="copyProfileUidBtn">📋 Копировать UID</button>
+                    </div>
+                    <p>👥 Друзей: ${friendsList.length}<br>📢 Каналов: ${channelsList.length}<br>💬 Групп: ${groupsList.length}</p>
                     <button id="createChannelBtn" class="small">📢 Создать канал</button>
                     <button id="createGroupBtn" class="small">💬 Создать группу</button>
                 </div>
@@ -453,7 +537,7 @@
         `;
         
         document.getElementById('appRoot').innerHTML = html;
-        attachEvents(isLogged, friendsList, friendRequests, channelsList, groupsList);
+        attachEvents(isLogged, friendsList, friendRequests, channelsList, groupsList, userUid);
         
         if (isMobile) {
             const sidebar = document.getElementById('mainSidebar');
@@ -485,7 +569,7 @@
                 </div>`).join('');
                 items.unshift(`<li style="margin-bottom:12px;"><strong>📩 Заявки:</strong> ${reqHtml}</li>`);
             }
-            items.push(`<li><input type="text" id="addFriendInput" placeholder="UID друга" style="margin-top:12px;"><button id="addFriendBtn" class="small" style="margin-top:4px;">➕ Добавить друга</button></li>`);
+            items.push(`<li><input type="text" id="addFriendInput" placeholder="UID друга (например, ${currentUser?.uid?.substring(0, 8)}...)" style="margin-top:12px;"><button id="addFriendBtn" class="small" style="margin-top:4px;">➕ Добавить друга</button></li>`);
             return items.join('') || '<li style="color:gray;">Нет друзей</li>';
         } else if (type === 'channels') {
             return channels.map(ch => `<li class="chat-item" data-chat-type="channels" data-chat-id="${ch.id}"><div class="chat-name">📢 ${ch.name}</div></li>`).join('') || '<li style="color:gray;">Нет каналов</li>';
@@ -518,7 +602,17 @@
         container.scrollTop = container.scrollHeight;
     }
     
-    function attachEvents(isLogged, friendsList, requests, channels, groups) {
+    function attachEvents(isLogged, friendsList, requests, channels, groups, userUid) {
+        // Кнопки копирования UID
+        const copyHeaderBtn = document.getElementById('copyHeaderUidBtn');
+        const copyProfileBtn = document.getElementById('copyProfileUidBtn');
+        if (copyHeaderBtn && userUid) {
+            copyHeaderBtn.onclick = () => copyToClipboard(userUid, '✅ UID скопирован!');
+        }
+        if (copyProfileBtn && userUid) {
+            copyProfileBtn.onclick = () => copyToClipboard(userUid, '✅ UID скопирован!');
+        }
+        
         // Вкладки
         document.querySelectorAll('.tab-mini').forEach(btn => {
             btn.addEventListener('click', () => {
@@ -550,7 +644,11 @@
         const addBtn = document.getElementById('addFriendBtn');
         const addInput = document.getElementById('addFriendInput');
         if (addBtn && addInput) {
-            addBtn.onclick = () => { sendFriendRequest(addInput.value).then(() => { addInput.value = ''; renderUI(); }); };
+            addBtn.onclick = () => { 
+                const uid = addInput.value.trim();
+                if (uid) sendFriendRequest(uid).then(() => { addInput.value = ''; renderUI(); });
+                else showToast('❌ Введите UID друга');
+            };
         }
         
         // Отправка сообщений
@@ -612,7 +710,7 @@
         });
     }
     
-    // ======================== СЛУШАТЕЛЬ АВТОРИЗАЦИИ (СОХРАНЕНИЕ СЕССИИ) ========================
+    // ======================== СЛУШАТЕЛЬ АВТОРИЗАЦИИ ========================
     auth.onAuthStateChanged(async (user) => {
         if (user) {
             currentUser = user;
